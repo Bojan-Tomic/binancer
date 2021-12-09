@@ -12,6 +12,7 @@ BINANCE <- list(
     METHODS = c('GET', 'POST', 'PUT', 'DELETE')
 )
 
+BINANCE_WEIGHT <- 0
 
 # Utils -------------------------------------------------------------------
 
@@ -37,6 +38,7 @@ binance_key <- function() {
 #' @param key string
 #' @param secret string
 #' @export
+#' @return No return values, setting config in the package namespace.
 #' @examples \dontrun{
 #' binance_credentials('foo', 'bar')
 #' }
@@ -47,7 +49,7 @@ binance_credentials <- function(key, secret) {
 
 
 #' Check if Binance credentials were set previously
-#' @return fail on missing credentials
+#' @return No return values, but fails when credentials were not set.
 #' @keywords internal
 binance_check_credentials <- function() {
     if (is.null(credentials$secret)) {
@@ -86,16 +88,15 @@ binance_sign <- function(params) {
 #' @param content_as parameter to httr::content
 #' @return R object
 #' @keywords internal
-#' @importFrom httr headers add_headers
+#' @importFrom httr headers add_headers content
+#' @importFrom utils assignInMyNamespace
 binance_query <- function(endpoint, method = 'GET',
                           params = list(), body = NULL, sign = FALSE,
                           retry = method == 'GET', content_as = 'parsed') {
 
-    # if Binance weight is approaching the limmit of 1200, wait for the next full minute
-    if (exists('binance.weight')) {
-        if (binance.weight > 1159) {
-            Sys.sleep(61 - as.integer(format(Sys.time(), "%S")))
-        }
+    # if Binance weight is approaching the limit of 1200, wait for the next full minute
+    if (BINANCE_WEIGHT > 1159) {
+        Sys.sleep(61 - as.integer(format(Sys.time(), "%S")))
     }
 
     method <- match.arg(method)
@@ -114,7 +115,7 @@ binance_query <- function(endpoint, method = 'GET',
         params = params,
         config = config)
 
-    binance.weight <<- as.integer(headers(res)$`x-mbx-used-weight`)
+    assignInMyNamespace('BINANCE_WEIGHT', as.integer(headers(res)$`x-mbx-used-weight`))
     res <- content(res, as = content_as)
 
     if (content_as == 'parsed' & length(res) == 2 & !is.null(names(res))) {
@@ -125,11 +126,12 @@ binance_query <- function(endpoint, method = 'GET',
 
     res
 }
+formals(binance_query)$method <- BINANCE$METHODS
 
 
 #' Test connectivity to the Rest API
-#' @return list
 #' @export
+#' @return "OK" string on success
 binance_ping <- function() {
     res <- binance_query(endpoint = '/api/v1/ping')
     if (is.list(res) & length(res) == 0) {
@@ -140,8 +142,8 @@ binance_ping <- function() {
 
 
 #' Get the current server time from Binance
-#' @return list
 #' @export
+#' @return \code{POSIXct}
 binance_time <- function() {
     res <- binance_query(endpoint = '/api/v1/time')$serverTime
     res <- as.POSIXct(res/1e3, origin = '1970-01-01')
@@ -157,9 +159,9 @@ binance_time <- function() {
 #' @param limit optional int
 #' @param start_time optional POSIX timestamp
 #' @param end_time optional POSIX timestamp
-#' @return data.table
+#' @return \code{data.table} with open-high-low-close values
 #' @export
-#' @importFrom data.table rbindlist data.table
+#' @importFrom data.table rbindlist data.table :=
 #' @examples \dontrun{
 #' binance_klines('ETHUSDT')
 #' binance_klines('ETHUSDT', interval = '1h', limit = 24*7)
@@ -215,6 +217,8 @@ binance_klines <- function(symbol, interval, limit, start_time, end_time) {
     data.table(klines)
 
 }
+formals(binance_klines)$interval <- BINANCE$INTERVALS
+
 
 #' Get tick data from Binance
 #' @param symbol string
@@ -222,7 +226,7 @@ binance_klines <- function(symbol, interval, limit, start_time, end_time) {
 #' @param start_time optional POSIX timestamp
 #' @param end_time optional POSIX timestamp
 #' @param limit optional int
-#' @return data.table
+#' @return \code{data.table}
 #' @export
 #' @importFrom data.table rbindlist data.table
 #' @examples \dontrun{
@@ -230,6 +234,9 @@ binance_klines <- function(symbol, interval, limit, start_time, end_time) {
 #' binance_ticks('ETHUSDT', start_time = '2018-01-01 00:00:00', end_time = '2018-01-01 01:00:00')
 #' }
 binance_ticks <- function(symbol, from_id, start_time, end_time, limit) {
+
+    # silence "no visible global function/variable definition" R CMD check
+    time <- NULL
 
     params <- list(symbol = symbol)
 
@@ -281,7 +288,7 @@ binance_ticks <- function(symbol, from_id, start_time, end_time, limit) {
 #' Get last trades from Binance
 #' @param symbol string
 #' @param limit optional int
-#' @return data.table
+#' @return \code{data.table}
 #' @export
 #' @importFrom data.table rbindlist data.table
 #' @importFrom snakecase to_snake_case
@@ -290,6 +297,9 @@ binance_ticks <- function(symbol, from_id, start_time, end_time, limit) {
 #' binance_trades('ETHUSDT', limit = 1000)
 #' }
 binance_trades <- function(symbol, limit) {
+
+    # silence "no visible global function/variable definition" R CMD check
+    time <- NULL
 
     params <- list(symbol = symbol)
 
@@ -318,7 +328,7 @@ binance_trades <- function(symbol, limit) {
 #' Get orderbook depth data from Binance
 #' @param symbol string
 #' @param limit int optional
-#' @return data.table
+#' @return \code{data.table}
 #' @export
 #' @importFrom data.table rbindlist data.table
 #' @examples \dontrun{
@@ -367,9 +377,12 @@ binance_depth <- function(symbol, limit) {
 
 #' Get last price for a symbol or all symbols
 #' @param symbol optional string
-#' @return data.table
+#' @return \code{data.table}
 #' @export
 binance_ticker_price <- function(symbol) {
+
+    # silence "no visible global function/variable definition" R CMD check
+    price <- NULL
 
     if (!missing(symbol)) {
         params <- list(symbol = symbol)
@@ -387,7 +400,7 @@ binance_ticker_price <- function(symbol) {
 
 #' Get last bids and asks for a symbol or all symbols
 #' @param symbol optional string
-#' @return data.table
+#' @return \code{data.table}
 #' @export
 #' @importFrom snakecase to_snake_case
 binance_ticker_book <- function(symbol) {
@@ -412,10 +425,13 @@ binance_ticker_book <- function(symbol) {
 
 
 #' Get latest Binance conversion rates and USD prices on all symbol pairs
-#' @return data.table
+#' @return \code{data.table}
 #' @export
 #' @importFrom data.table rbindlist
 binance_ticker_all_prices <- function() {
+
+    # silence "no visible global function/variable definition" R CMD check
+    price <- from <- to <- to_usd <- from_usd <- symbol <- NULL
 
     prices <- binance_query(endpoint = 'api/v1/ticker/allPrices')
     prices <- rbindlist(prices)
@@ -438,12 +454,12 @@ binance_ticker_all_prices <- function() {
     prices[to == 'USDT' | to == 'TUSD' | to == 'PAX' | to == 'USDC' | to == 'USDS', from_usd := price]
     prices[to != 'USDT' & to != 'TUSD' & to != 'PAX' & to != 'USDC' & to != 'USDS', from_usd := price * to_usd]
 
-    prices[, .(symbol, price, from, from_usd, to, to_usd)]
+    prices[, list(symbol, price, from, from_usd, to, to_usd)]
 }
 
 
 #' Get latest Binance bids and asks on all symbol pairs
-#' @return data.table
+#' @return \code{data.table}
 #' @export
 #' @importFrom data.table rbindlist
 #' @importFrom snakecase to_snake_case
@@ -464,7 +480,7 @@ binance_ticker_all_books <- function() {
 
 #' 24 hour rolling window price change statistics
 #' @param symbol optional string
-#' @return data.table
+#' @return \code{data.table}
 #' @export
 #' @importFrom data.table rbindlist
 #' @importFrom snakecase to_snake_case
@@ -499,10 +515,13 @@ binance_ticker_24hr <- function(symbol) {
 
 #' Get current average price for a symbol
 #' @param symbol string
-#' @return data.table
+#' @return \code{data.table}
 #' @export
 #' @importFrom jsonlite fromJSON
 binance_avg_price <- function(symbol) {
+
+    # silence "no visible global function/variable definition" R CMD check
+    price <- NULL
 
     params <- list(symbol = symbol)
 
@@ -513,7 +532,7 @@ binance_avg_price <- function(symbol) {
 }
 
 #' Get exchangeInfo from Binance
-#' @return list
+#' @return \code{list}
 #' @export
 #' @importFrom jsonlite fromJSON
 binance_exchange_info <- function() {
@@ -527,7 +546,7 @@ binance_exchange_info <- function() {
 
 #' Get current filters for a symbol
 #' @param symbol string
-#' @return data.table
+#' @return \code{data.table}
 #' @export
 binance_filters <- function(symbol) {
     # workaround the problem in data.table when variable has the same name as column
@@ -544,9 +563,12 @@ binance_filters <- function(symbol) {
 
 #' Get all currently valid symbol names from Binance
 #' @param all optional bool include non-trading symbols
-#' @return character vector
+#' @return character vector of symbol names
 #' @export
 binance_symbols <- function(all = FALSE) {
+    # silence "no visible global function/variable definition" R CMD check
+    symbol <- status <- NULL
+
     if (isTRUE(all)) {
         binance_exchange_info()$symbols$symbol
     } else {
@@ -556,7 +578,7 @@ binance_symbols <- function(all = FALSE) {
 
 
 #' Get all currently valid coin names from Binance
-#' @return character vector
+#' @return character vector of coin names
 #' @export
 binance_coins <- function() {
     sort(unique(sub('(BTC|ETH|BNB|USDT|TUSD|PAX|USDC|XRP|USDS)$', '', binance_symbols())))
@@ -565,10 +587,13 @@ binance_coins <- function() {
 
 #' Get all currently valid coin names from Binance along with the USDT prices
 #' @param unit to set quote asset
-#' @return data.table
+#' @return \code{data.table} with \code{symbol} and \code{usd} columns
 #' @export
 binance_coins_prices <- function(unit = 'USDT') {
-    unique(binance_ticker_all_prices(), by = 'from')[, .(symbol = from, usd = from_usd)]
+    # silence "no visible global function/variable definition" R CMD check
+    from <- from_usd <- NULL
+
+    unique(binance_ticker_all_prices(), by = 'from')[, list(symbol = from, usd = from_usd)]
 }
 
 
@@ -598,6 +623,9 @@ binance_account <- function() {
 #' @export
 #' @importFrom data.table rbindlist
 binance_balances <- function(threshold = -1, usdt = FALSE) {
+
+    # silence "no visible global function/variable definition" R CMD check
+    free <- locked <- total <- usd <- NULL
 
     balances <- binance_query(endpoint = 'api/v3/account', sign = TRUE)$balances
     balances <- rbindlist(balances)
@@ -632,6 +660,9 @@ binance_balances <- function(threshold = -1, usdt = FALSE) {
 #' }
 binance_mytrades <- function(symbol, limit, from_id, start_time, end_time) {
 
+    # silence "no visible global function/variable definition" R CMD check
+    time <- NULL
+
     if (length(symbol) > 1) {
         return(rbindlist(lapply(symbol, binance_mytrades), fill = TRUE))
     }
@@ -640,10 +671,10 @@ binance_mytrades <- function(symbol, limit, from_id, start_time, end_time) {
 
     if (!missing(limit)) {
         stopifnot(limit <= 1000L)
-        params$limit = limit
+        params$limit <- limit
     }
     if (!missing(from_id)) {
-        params$fromId = from_id
+        params$fromId <- from_id
     }
     if (!missing(start_time)) {
         params$startTime <- format(as.numeric(as.POSIXct(start_time)) * 1e3, scientific = FALSE)
@@ -687,6 +718,10 @@ binance_mytrades <- function(symbol, limit, from_id, start_time, end_time) {
 #'                   price = 0.5, time_in_force = 'GTC')
 #' }
 binance_new_order <- function(symbol, side, type, time_in_force, quantity, price, stop_price, iceberg_qty, test = TRUE) {
+
+    # silence "no visible global function/variable definition" R CMD check
+    filterType <- minQty <- maxQty <- stepSize <- applyToMarket <- avgPriceMins <- limit <- NULL
+    minNotional <- minPrice <- maxPrice <- tickSize <- multiplierDown <- multiplierUp <- NULL
 
     side <- match.arg(side)
     type <- match.arg(type)
@@ -824,6 +859,9 @@ binance_new_order <- function(symbol, side, type, time_in_force, quantity, price
 
     data.table(ord)
 }
+formals(binance_new_order)$side <- BINANCE$SIDE
+formals(binance_new_order)$type <- BINANCE$TYPE
+formals(binance_new_order)$time_in_force <- BINANCE$TIMEINFORCE
 
 
 #' Query order on the Binance account
