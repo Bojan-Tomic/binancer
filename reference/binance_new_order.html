@@ -3,7 +3,7 @@
 <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
 <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
 <![endif]--></head><body data-spy="scroll" data-target="#toc">
-    
+
 
     <div class="container template-reference-topic">
       <header><div class="navbar navbar-default navbar-fixed-top" role="navigation">
@@ -29,13 +29,13 @@
   </div><!--/.container -->
 </div><!--/.navbar -->
 
-      
+
 
       </header><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
     <h1>Open new order on the Binance account</h1>
-    
+
     <div class="hidden name"><code>binance_new_order.Rd</code></div>
     </div>
 
@@ -60,56 +60,56 @@
 
     <div id="arguments">
     <h2>Arguments</h2>
-    <dl><dt>symbol</dt>
+
+
+<dl><dt id="arg-symbol">symbol<a class="anchor" aria-label="anchor" href="#arg-symbol"></a></dt>
 <dd><p>string</p></dd>
 
 
-<dt>side</dt>
+<dt id="arg-side">side<a class="anchor" aria-label="anchor" href="#arg-side"></a></dt>
 <dd><p>enum</p></dd>
 
 
-<dt>type</dt>
+<dt id="arg-type">type<a class="anchor" aria-label="anchor" href="#arg-type"></a></dt>
 <dd><p>enum</p></dd>
 
 
-<dt>time_in_force</dt>
+<dt id="arg-time-in-force">time_in_force<a class="anchor" aria-label="anchor" href="#arg-time-in-force"></a></dt>
 <dd><p>optional enum</p></dd>
 
 
-<dt>quantity</dt>
+<dt id="arg-quantity">quantity<a class="anchor" aria-label="anchor" href="#arg-quantity"></a></dt>
 <dd><p>number</p></dd>
 
 
-<dt>price</dt>
+<dt id="arg-price">price<a class="anchor" aria-label="anchor" href="#arg-price"></a></dt>
 <dd><p>optional number</p></dd>
 
 
-<dt>stop_price</dt>
+<dt id="arg-stop-price">stop_price<a class="anchor" aria-label="anchor" href="#arg-stop-price"></a></dt>
 <dd><p>optional number</p></dd>
 
 
-<dt>iceberg_qty</dt>
+<dt id="arg-iceberg-qty">iceberg_qty<a class="anchor" aria-label="anchor" href="#arg-iceberg-qty"></a></dt>
 <dd><p>optional number</p></dd>
 
 
-<dt>test</dt>
+<dt id="arg-test">test<a class="anchor" aria-label="anchor" href="#arg-test"></a></dt>
 <dd><p>bool</p></dd>
 
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    
-
-<p>data.table</p>
+    <p>data.table</p>
     </div>
 
     <div id="ref-examples">
     <h2>Examples</h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
 <span class="r-in"><span><span class="fu">binance_new_order</span><span class="op">(</span><span class="st">'ARKETH'</span>, side <span class="op">=</span> <span class="st">'BUY'</span>, type <span class="op">=</span> <span class="st">'MARKET'</span>, quantity <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">binance_new_order</span><span class="op">(</span><span class="st">'ARKBTC'</span>, side <span class="op">=</span> <span class="st">'BUY'</span>, type <span class="op">=</span> <span class="st">'LIMIT'</span>, quantity <span class="op">=</span> <span class="fl">1</span>,</span></span>
 <span class="r-in"><span>                  price <span class="op">=</span> <span class="fl">0.5</span>, time_in_force <span class="op">=</span> <span class="st">'GTC'</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">}</span></span></span>
+<span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
   </div>
@@ -124,15 +124,15 @@
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.9.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
       </footer></div>
 
-  
 
 
-  
+
+
 
   </body></html>
 
