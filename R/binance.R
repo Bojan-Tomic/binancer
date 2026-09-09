@@ -446,6 +446,8 @@ binance_ticker_all_prices <- function() {
     prices[from %in% c('USDT'), to_usd := 1/price]
     # recursive resolve prices
     while (prices[, any(is.na(to_usd))]) {
+        n_before <- prices[, sum(is.na(to_usd))]
+
         lookup <- prices[!is.na(to_usd)][, .(price = mean(to_usd)), by = .(symbol = to)]
         ## fall back to previously looked up/double conversions
         lookup <- rbind(
@@ -461,6 +463,11 @@ binance_ticker_all_prices <- function() {
                  )) {
             prices[is.na(to_usd) & to == s, to_usd := lookup[symbol == s, price]]
             prices[is.na(to_usd) & from == s, to_usd := lookup[symbol == s, price]]
+        }
+
+        n_after <- prices[, sum(is.na(to_usd))]
+        if (n_after >= n_before) {
+            break
         }
     }
 
